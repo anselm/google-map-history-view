@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Path Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Location Path Map</h1>
+    <div id="map"></div>
+
+    <script>
+        // Initialize the map and set its view to a default location (centered on the world)
+        const map = L.map('map').setView([0, 0], 2);
+
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+
+        // Fetch location-history.json file
+        fetch('location-history.json')
+            .then(response => response.json())
+            .then(data => {
+                // Process each item in the data
+                data.forEach(item => {
+                    if (item.timelinePath) {
+                        console.log("fetching",item)
+                        const pathPoints = [];
+                        item.timelinePath.forEach(point => {
+                            // Split the "geo:" coordinates
+                            const [lat, lon] = point.point.replace('geo:', '').split(',');
+
+                            // Add the lat/lon as Leaflet LatLng objects to pathPoints
+                            pathPoints.push([parseFloat(lat), parseFloat(lon)]);
+                        });
+
+                        // Draw a polyline for each timelinePath
+                        const polyline = L.polyline(pathPoints, { color: 'blue' }).addTo(map);
+                    }
+
+                });
+
+            })
+            .catch(error => console.error('Error fetching location-history.json:', error));
+    </script>
+</body>
+</html>
+
